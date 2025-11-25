@@ -9,4 +9,8 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Database connection failed");
 }
+
+// API Key for Gemini LLM
+$apiKey = "AIzaSyCUQWTW5L3q8tKYdF4mwu9W39YNmlSWaBA";
+
 ?>
