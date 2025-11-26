@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS llm_ehr_db;
 CREATE DATABASE llm_ehr_db;
 USE llm_ehr_db;
 
@@ -9,7 +10,7 @@ CREATE TABLE Users (
     UserID INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
     LastName VARCHAR(100) NOT NULL,
-    Username VARCHAR(100) UNIQUE NOT NULL,
+    Username VARCHAR(100) NOT NULL,
     PasswordHash VARCHAR(255) NOT NULL,
     Role ENUM('clinician','researcher','admin') DEFAULT 'clinician',
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -25,11 +26,11 @@ CREATE TABLE Patients (
     LastName VARCHAR(100),
     DateOfBirth DATE,
     Sex ENUM('Male','Female','Other'),
-    PhotoPath VARCHAR(255),
-    ConditionSummary TEXT,
-    CreatedBy INT,
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (CreatedBy) REFERENCES Users(UserID)
+    -- PhotoPath VARCHAR(255),
+    -- ConditionSummary TEXT,
+    -- CreatedBy INT,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -- FOREIGN KEY (CreatedBy) REFERENCES Users(UserID)
 );
 
 -- =====================================================
@@ -39,12 +40,13 @@ CREATE TABLE Patients (
 CREATE TABLE EHR_Inputs (
     EHRID INT AUTO_INCREMENT PRIMARY KEY,
     PatientID INT NOT NULL,
-    InputJSON JSON NOT NULL,   -- flexible data input
-    UploadedBy INT,
+    InputJSON JSON NULL,   -- flexible data input
+    -- UploadedBy INT,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PDFPath VARCHAR(500),
 
-    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID),
-    FOREIGN KEY (UploadedBy) REFERENCES Users(UserID)
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID)
+    -- FOREIGN KEY (UploadedBy) REFERENCES Users(UserID)
 );
 
 -- =====================================================
@@ -54,12 +56,14 @@ CREATE TABLE EHR_Inputs (
 CREATE TABLE LLM_Reports (
     ReportID INT AUTO_INCREMENT PRIMARY KEY,
     EHRID INT NOT NULL,
-    ReportText LONGTEXT NOT NULL,
+    -- ReportText LONGTEXT NOT NULL,
     GeneratedBy INT,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PDFPath VARCHAR(500),
+    Prompt VARCHAR(100),
 
-    FOREIGN KEY (EHRID) REFERENCES EHR_Inputs(EHRID),
-    FOREIGN KEY (GeneratedBy) REFERENCES Users(UserID)
+    FOREIGN KEY (EHRID) REFERENCES EHR_Inputs(EHRID)
+    -- FOREIGN KEY (GeneratedBy) REFERENCES Users(UserID)
 );
 
 -- =====================================================
@@ -69,9 +73,9 @@ CREATE TABLE LLM_Reports (
 CREATE TABLE Literature_DB (
     DocID INT AUTO_INCREMENT PRIMARY KEY,
     Title VARCHAR(255),
-    AbstractText LONGTEXT,
-    Embeddings JSON,
+    ReportText LONGTEXT,
     Source VARCHAR(255),
+    PDFPath VARCHAR(500),
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -99,7 +103,7 @@ CREATE TABLE Prompt_History (
     PromptID INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT,
     PromptText LONGTEXT,
-    LLMResponse LONGTEXT,
+    LLMReportPath VARCHAR(500),
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
