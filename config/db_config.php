@@ -1,17 +1,17 @@
 <?php
 $servername = "localhost";
 $username   = "root";
-$password = ']\C2=ERR*_n0`j:?9F-"s9afN,eUl,QmEIPm6/AJL)~P:/A7]F';
+$password = 'root';
 $dbname     = "llm_ehr_db";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($servername, $username, $password, $dbname, 8889);
 
 if ($conn->connect_error) {
     die("Database connection failed");
 }
 
-// other definisions
-define('BASE_SERVER_URL', 'http://localhost:8000');
+// other definitions
+define('BASE_SERVER_URL', 'http://localhost:8888/llm-ehr-backend');
 define('BASE_APP_URL', 'http://localhost:3000');
 define('API_KEY', 'AIzaSyAxvwJHNi45lC1fK575FF-QTVWKZi8qbQw');
 
