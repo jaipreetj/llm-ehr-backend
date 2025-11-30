@@ -1,78 +1,63 @@
 
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';  // dompdf autoloader
+require_once __DIR__ . '/../../vendor/autoload.php';  // dompdf autoloader
 use Dompdf\Dompdf;
-// dummy data
+use Smalot\PdfParser\Parser;
 
-$ehrData = [
-    "patient" => [
-        "name" => "Michael Rodriguez",
-        "dob" => "1975-04-22",
-        "sex" => "Male",
-        "mrn" => "00291837"
-    ],
-    "encounter" => [
-        "date" => "2025-05-01",
-        "type" => "Outpatient",
-        "clinician" => "Dr. Aisha Patel"
-    ],
-    "chief_complaint" => "Chronic lower back pain",
-    "history_of_present_illness" => "Pain for 3 months, worse when sitting, no trauma, no numbness/tingling.",
-    "past_medical_history" => [
-        "Hypertension",
-        "Hyperlipidemia"
-    ],
-    "medications" => [
-        [ "name" => "Amlodipine", "dose" => "5mg daily" ],
-        [ "name" => "Atorvastatin", "dose" => "20mg daily" ]
-    ],
-    "allergies" => [],
-    "vitals" => [
-        "bp" => "132/84",
-        "hr" => 78,
-        "temp" => "36.7C",
-        "spo2" => "98%"
-    ],
-    "exam" => [
-        "musculoskeletal" => "Tenderness over L4-L5, limited forward flexion"
-    ],
-    "assessment" => [
-        "Chronic mechanical low back pain"
-    ],
-    "plan" => [
-        "Physiotherapy referral",
-        "Core strengthening exercises",
-        "NSAIDs PRN",
-        "Follow up in 4 weeks"
-    ]
-];
-
-
-require_once __DIR__ . '/../prompts/systemInstructions.php';
-require_once __DIR__ . '/../config/db_config.php';
+require_once __DIR__ . '/../../prompts/systemInstructions.php';
+require_once __DIR__ . '/../../config/db_config.php';
 
 
 $input = json_decode(file_get_contents('php://input'), true);
 $prompt = $input['prompt'] ?? '';
-// $fileData = $input['file'] ?? null;
+$ehrId = $input['ehrId'] ?? '';
+
+// get ehr data from db and parse it to obtain the json ehr json vlaue
+$stmt = $conn->prepare("SELECT PDFPath FROM EHR_Inputs WHERE EHRID = ?");
+$stmt->bind_param("i", $ehrId);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    http_response_code(404);
+    echo json_encode(["error" => "EHR not found"]);
+    exit;
+}
+
+$row = $result->fetch_assoc();
+$pdfPath = $row['PDFPath'];
+
+if (!$pdfPath) {
+    http_response_code(400);
+    echo json_encode(["error" => "No PDFPath found for this EHR"]);
+    exit;
+}
+
+$absolutePath = __DIR__ . '/../../' . ltrim($pdfPath, '/');
+
+if (!file_exists($absolutePath)) {
+    error_log("PASSSS 1");
+    http_response_code(500);
+    echo json_encode(["error" => "PDF file not found"]);
+    exit;
+}
 
 
-// if ($fileData) {
-//     $fileName = $fileData['name'] ?? 'file.pdf';
-//     $fileBase64 = $fileData['data'] ?? '';
-//     // Remove the "data:application/pdf;base64," prefix if present
-//     $fileBase64 = preg_replace('#^data:application/\w+;base64,#i', '', $fileBase64);
+$parser = new Parser();
+$pdf = $parser->parseFile($absolutePath);
 
-//     // Decode and save the file
-//     $decoded = base64_decode($fileBase64);
-//     $uploadDir = __DIR__ . '/uploads/ehr/';
-//     if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+$text = $pdf->getText();
+$clean = trim(preg_replace('/\s+/', ' ', $text));
+$ehrData = json_decode($clean, true);
 
-//     $filePath = $uploadDir . $fileName;
-//     file_put_contents($filePath, $decoded);
-//     error_log("File saved to: $filePath");
-// }
+if ($ehrData === null) {
+    error_log("JSON decode failed, cleaned text:");
+    error_log($clean);
 
+    http_response_code(500);
+    echo json_encode(["error" => "Extracted PDF text is not valid JSON"]);
+    exit;
+}
 
 // Call your LLM function with relevant literature
 $literature = getRelevantLiterature($conn, $ehrData);
@@ -129,9 +114,9 @@ echo json_encode($result);
 
 
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';  // dompdf autoloader
+require_once __DIR__ . '/../../vendor/autoload.php';  // dompdf autoloader
 
-require_once __DIR__ . '/../prompts/systemInstructions.php';
+require_once __DIR__ . '/../../prompts/systemInstructions.php';
 
 function getRelevantLiterature($conn, $ehrData, $maxResults = 5) {
     // first generate the keywords
@@ -248,7 +233,7 @@ function callGeminiLLM($prompt, $ehrJson = "", $apiKey = API_KEY, $model = 'gemi
     $dompdf->setPaper('A4', 'portrait');
     $dompdf->render();
 
-    $reportDir = __DIR__ . '/../reports/';
+    $reportDir = __DIR__ . '/../../reports/';
     if (!is_dir($reportDir)) mkdir($reportDir, 0777, true);
     $filename = 'ehr_report_' . time() . '.pdf';
     $filePath = $reportDir . $filename;
