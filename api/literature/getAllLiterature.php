@@ -11,7 +11,6 @@ $literature = [];
 
 if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
-        // Construct PDF URL (assuming PDFs are in uploads/)
         $pdfUrl = !empty($row['PDFPath']) ? BASE_SERVER_URL . $row['PDFPath'] : null;
         $literature[] = [
             "DocID" => $row["DocID"],

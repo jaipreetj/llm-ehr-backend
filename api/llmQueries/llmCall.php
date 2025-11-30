@@ -1,6 +1,6 @@
 
 <?php
-require_once __DIR__ . '/../../vendor/autoload.php';  // dompdf autoloader
+require_once __DIR__ . '/../../vendor/autoload.php';
 use Dompdf\Dompdf;
 use Smalot\PdfParser\Parser;
 
@@ -206,10 +206,6 @@ function callGeminiLLM($prompt, $ehrJson = "", $apiKey = API_KEY, $model = 'gemi
     // Decode LLM response
     $decoded = json_decode($response, true);
     $reply = $decoded['candidates'][0]['content']['parts'][0]['text'] ?? 'No reply received.';
-
-    // ------------------------------------------------
-    // ✨ CREATE PDF USING DOMPDF
-    // ------------------------------------------------
 
     // HTML template for PDF
     $html = "

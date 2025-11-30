@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/db_config.php';
 
-// Read JSON body
 $data = json_decode(file_get_contents("php://input"), true);
 
 if (!isset($data['email']) || !isset($data['password']) || !isset($data['role'])) {

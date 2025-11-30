@@ -2,9 +2,7 @@
 
 require_once __DIR__ . '/../../config/db_config.php';
 
-// ----------------------
-// Validate required fields
-// ----------------------
+
 $firstName = $_POST["firstName"] ?? null;
 $lastName = $_POST["lastName"] ?? null;
 $dob = $_POST["dob"] ?? null;
@@ -15,12 +13,6 @@ if (!$firstName || !$lastName || !$dob || !$sex) {
     exit();
 }
 
-// Normally from auth session. For now:
-// $uploadedBy = 1;
-
-// ----------------------
-// STEP 1 — Create Patient
-// ----------------------
 $stmt = $conn->prepare("
     INSERT INTO Patients (FirstName, LastName, DateOfBirth, Sex)
     VALUES (?, ?, ?, ?)
@@ -32,12 +24,9 @@ if (!$stmt->execute()) {
     exit();
 }
 
-$patientID = $stmt->insert_id; // ⭐ newly created patient
+$patientID = $stmt->insert_id;
 $stmt->close();
 
-// ----------------------
-// STEP 2 — Handle PDF upload
-// ----------------------
 $pdfPath = null;
 
 if (isset($_FILES["pdf"])) {
@@ -62,9 +51,6 @@ if (isset($_FILES["pdf"])) {
     $pdfPath = "/uploads/ehr/" . $newName;
 }
 
-// ----------------------
-// STEP 3 — Create EHR_Inputs entry
-// ----------------------
 $stmt = $conn->prepare("
     INSERT INTO EHR_Inputs (PatientID, InputJSON, PDFPath)
     VALUES (?, ?, ?)
@@ -81,9 +67,6 @@ if (!$stmt->execute()) {
 $ehrID = $stmt->insert_id;
 $stmt->close();
 
-// ----------------------
-// SUCCESS RESPONSE
-// ----------------------
 echo json_encode([
     "success" => true,
     "message" => "Patient + EHR created",

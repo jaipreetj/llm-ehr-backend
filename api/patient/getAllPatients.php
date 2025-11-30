@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config/db_config.php';
 
-// Query: get all patient info + their EHR pdfurl
+
 $sql = "
     SELECT
         p.PatientID,

@@ -32,25 +32,12 @@ if ($password !== $confirmPassword) {
     exit;
 }
 
-// Optional: validate role
 $validRoles = ['clinician','researcher','admin'];
 if (!in_array($role, $validRoles)) {
     http_response_code(400);
     echo json_encode(["error" => "Invalid role"]);
     exit;
 }
-
-// Check if username exists
-// $checkStmt = $conn->prepare("SELECT UserID FROM Users WHERE Username = ?");
-// $checkStmt->bind_param("s", $username);
-// $checkStmt->execute();
-// $checkResult = $checkStmt->get_result();
-
-// if ($checkResult->num_rows > 0) {
-//     http_response_code(409);
-//     echo json_encode(["error" => "Email already registered"]);
-//     exit;
-// }
 
 // Hash the password
 $hashedPassword = password_hash($password, PASSWORD_BCRYPT);

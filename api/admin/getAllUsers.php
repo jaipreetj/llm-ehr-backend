@@ -3,7 +3,6 @@
 require_once __DIR__ . '/../../config/db_config.php';
 
 try {
-    // Prepare query
     $sql = "SELECT UserID, Name, LastName, Username, Role FROM Users";
     $result = $conn->query($sql);
 

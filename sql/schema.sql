@@ -4,7 +4,6 @@ USE llm_ehr_db;
 
 -- =====================================================
 -- Users
--- Clinicians/researchers with login credentials
 -- =====================================================
 CREATE TABLE Users (
     UserID INT AUTO_INCREMENT PRIMARY KEY,
@@ -18,7 +17,6 @@ CREATE TABLE Users (
 
 -- =====================================================
 -- Patients
--- ID, name, photo, demographics, condition summary
 -- =====================================================
 CREATE TABLE Patients (
     PatientID INT AUTO_INCREMENT PRIMARY KEY,
@@ -26,49 +24,38 @@ CREATE TABLE Patients (
     LastName VARCHAR(100),
     DateOfBirth DATE,
     Sex ENUM('Male','Female','Other'),
-    -- PhotoPath VARCHAR(255),
-    -- ConditionSummary TEXT,
-    -- CreatedBy INT,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    -- FOREIGN KEY (CreatedBy) REFERENCES Users(UserID)
 );
 
 -- =====================================================
 -- EHR_Inputs
--- Structured clinical data per patient (lab, symptoms, vitals)
 -- =====================================================
 CREATE TABLE EHR_Inputs (
     EHRID INT AUTO_INCREMENT PRIMARY KEY,
     PatientID INT NOT NULL,
-    InputJSON JSON NULL,   -- flexible data input
-    -- UploadedBy INT,
+    InputJSON JSON NULL,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PDFPath VARCHAR(500),
 
     FOREIGN KEY (PatientID) REFERENCES Patients(PatientID)
-    -- FOREIGN KEY (UploadedBy) REFERENCES Users(UserID)
 );
 
 -- =====================================================
 -- LLM_Reports
--- Diagnostic/treatment reports per query
 -- =====================================================
 CREATE TABLE LLM_Reports (
     ReportID INT AUTO_INCREMENT PRIMARY KEY,
     EHRID INT NOT NULL,
-    -- ReportText LONGTEXT NOT NULL,
     GeneratedBy INT,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PDFPath VARCHAR(500),
     Prompt VARCHAR(100),
 
     FOREIGN KEY (EHRID) REFERENCES EHR_Inputs(EHRID)
-    -- FOREIGN KEY (GeneratedBy) REFERENCES Users(UserID)
 );
 
 -- =====================================================
 -- Literature_DB
--- Embedded abstracts/articles for RAG
 -- =====================================================
 CREATE TABLE Literature_DB (
     DocID INT AUTO_INCREMENT PRIMARY KEY,
@@ -81,7 +68,6 @@ CREATE TABLE Literature_DB (
 
 -- =====================================================
 -- Feedback
--- User feedback on LLM report quality
 -- =====================================================
 CREATE TABLE Feedback (
     FeedbackID INT AUTO_INCREMENT PRIMARY KEY,
@@ -97,7 +83,6 @@ CREATE TABLE Feedback (
 
 -- =====================================================
 -- Prompt_History
--- Store prompt structure and LLM responses
 -- =====================================================
 CREATE TABLE Prompt_History (
     PromptID INT AUTO_INCREMENT PRIMARY KEY,
